@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Paste</title>
+	<style>
+		body {
+			font-size: 1.1em;
+		}
+		main {
+			max-width: 700px;
+			margin: 0 auto;
+		}
+
+		/* always break user input, avoids breaking the page layout */
+		#paste, #paste pre, h2, h5 {
+			white-space: pre-wrap;
+			word-wrap: break-word;
+		}
+
+		#paste {
+			font-family: monospace;
+		}
+	</style>
+</head>
+<body>
+	<main>
+		<h2><!--# echo var="paste_title" encoding="entity" default="untitled" --></h2>
+		<p>uploaded by <!--# echo var="paste_uploader" encoding="entity" default="anonymous" --></p>
+		<pre>
