@@ -18,59 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from os import environ, path
-from sys import stderr
-from bottle import get, post, request, response, abort, run
-from random import choices
-from string import ascii_letters, digits
-from collections import OrderedDict
-import json
+from bottle import Bottle, request, response, abort
+from src.sharelib import LRU, create_slug, config
 
 
-class LRU():
-    def __init__(self, size):
-        self._lru = OrderedDict()
-        self._len = size
+app = Bottle()
 
-    def __len__(self):
-        return len(self._lru)
-
-    def get(self, key, default=None):
-        try:
-            self._lru.move_to_end(key)
-            return self._lru[key]
-        except KeyError:
-            return default
-
-    def put(self, key, value):
-        self._lru[key] = value
-        if len(self._lru) > self._len:
-            self._lru.popitem(last=False)
-
-
-CONFIG_PATHS = [path.join(environ.get('XDG_CONFIG_HOME',
-                                      environ.get('HOME', './')),
-                          'shortie-config.json'),
-                '/etc/shortie-conf.json']
-
-DEFAULT_CONFIG = {'short_id_size': 8,
-                  'scheme': 'http',
-                  'listen_addr': '0.0.0.0',
-                  'port': 1997}
-
-URL_CACHE = LRU(65536)
-
-config = DEFAULT_CONFIG.copy()
-for config_path in CONFIG_PATHS:
-    try:
-        with open(config_path, 'r') as c:
-            config = {**DEFAULT_CONFIG, **json.load(c)}
-    except FileNotFoundError:
-        pass
-
-if not config:
-    print(f'WARNING: No config loaded; using defaults.',
-          file=stderr)
+URL_CACHE = LRU()
 
 
 def get_url_from_req():
@@ -78,10 +32,10 @@ def get_url_from_req():
                               f'{config["listen_addr"]}:{config["port"]}')
     scheme = request.get_header('X-Forwarded-Proto',
                                 config['scheme'])
-    return f'{scheme}://{host}'
+    return f'''{scheme}://{host}{config['shortie_route_prefix']}'''
 
 
-@post('/short')
+@app.post('/short')
 def shorten():
     short_url = request.forms.get('url', '')
     if short_url == '':
@@ -93,15 +47,14 @@ def shorten():
     elif short_url[:7] != 'http://' and short_url[:8] != 'https://':
         abort(400, 'url must have a HTTP uri schema')
 
-    link_id = ''.join(choices(ascii_letters + digits,
-                              k=config['short_id_size']))
+    link_id = create_slug()
     URL_CACHE.put(link_id, short_url)
 
-    return f'{get_url_from_req()}/{link_id}\n'
+    return f'{get_url_from_req()}{link_id}\n'
 
 
-@get('/')
-@get('/<short>')
+@app.get('/')
+@app.get('/<short>')
 def get_short(short=''):
     if short != '':
         location = URL_CACHE.get(short)
@@ -111,9 +64,4 @@ def get_short(short=''):
         response.status = 301
         response.add_header('Location', location)
     else:
-        return f'''curl '{get_url_from_req()}/short' -d "url=$url"\n'''
-
-
-if __name__ == '__main__':
-    run(host=config['listen_addr'],
-        port=config['port'])
+        return f'''curl '{get_url_from_req()}short' -d "url=$url"\n'''

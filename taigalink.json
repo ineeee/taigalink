@@ -1,0 +1,11 @@
+{
+  "slug_size": 6,
+  "link_storage_size": 8196,
+  "max_paste_size": 8192,
+  "paste_dir": "/var/www/taigalink/p/",
+  "shortie_route_prefix": "/s/",
+  "pasty_route_prefix": "/p/",
+  "scheme": "http",
+  "listen_addr": "127.0.0.1",
+  "port": 1997
+}
