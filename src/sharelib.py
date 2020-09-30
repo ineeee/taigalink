@@ -19,9 +19,9 @@ CONFIG_PATHS = [join(environ.get('XDG_CONFIG_HOME',
 DEFAULT_CONFIG = {'slug_size': 6,
                   'link_storage_size': 8196,
                   'max_paste_size': 1024 * 8,
-                  'paste_dir': '/var/www/taigalink/p/',
-                  'shortie_route_prefix': '/s/',  # must end with /
-                  'pasty_route_prefix': '/p/',  # must end with /
+                  'paste_dir': 'uploads/',
+                  'shortie_route_prefix': '/s/',  # must start and end with /
+                  'pasty_route_prefix': '/p/',  # must start and end with /
                   'scheme': 'http',
                   'listen_addr': '127.0.0.1',
                   'port': 1997}
