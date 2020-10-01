@@ -1,64 +1,49 @@
 from string import ascii_letters, digits
 from random import choices
-from os.path import join
-from os import environ
 import json
 from sys import stderr
+from os.path import join
 from collections import OrderedDict
 
 
-SLUG_CHAR = ascii_letters + digits
-
-# Parse config
-CONFIG_PATHS = [join(environ.get('XDG_CONFIG_HOME',
-                                 environ.get('HOME', './')),
-                     'taigalink.json'),
-                '/etc/taigalink.json',
-                './taigalink.json']
-
 DEFAULT_CONFIG = {'slug_size': 6,
+                  'slug_chars': ascii_letters + digits,
                   'link_storage_size': 8196,
                   'max_paste_size': 1024 * 8,
+                  'max_paste_title': 200,
                   'paste_dir': 'uploads/',
+                  'shortie_dir': 'uploads/',
                   'shortie_route_prefix': '/s/',  # must start and end with /
                   'pasty_route_prefix': '/p/',  # must start and end with /
-                  'scheme': 'http',
+                  'public_url': 'http://paste.wolowolo.com',  # no / at the end!
                   'listen_addr': '127.0.0.1',
                   'port': 1997}
 
 
 config = DEFAULT_CONFIG.copy()
-config_loaded = False
-for config_path in CONFIG_PATHS:
+try:
+    with open('./config.json', 'r') as c:
+        config = {**DEFAULT_CONFIG, **json.load(c)}
+except FileNotFoundError:
+    print('WARNING: no config.json exists, using defaults', file=stderr)
     try:
-        with open(config_path, 'r') as c:
-            config = {**DEFAULT_CONFIG, **json.load(c)}
-            config_loaded = True
-            break
-    except FileNotFoundError:
-        pass
-
-if not config_loaded:
-    print(f'WARNING: No config loaded; using defaults.',
-          file=stderr)
-    try:
-        with open('./taigalink.json', 'w') as f:
+        with open('./config.json', 'w') as f:
             json.dump(DEFAULT_CONFIG, f, indent=2)
-            print(f'WARNING: wrote default config to working directory.',
-                  file=stderr)
+            print('WARNING: wrote defaults to config.json', file=stderr)
     except Exception:
         pass
+    pass
 
-if not config['shortie_route_prefix'].endswith('/') or \
-   not config['shortie_route_prefix'].startswith('/'):
+if not config['shortie_route_prefix'].endswith('/') or not config['shortie_route_prefix'].startswith('/'):
     raise RuntimeError('shortie Route Prefix must start and end with a /')
-if not config['pasty_route_prefix'].endswith('/') or \
-   not config['pasty_route_prefix'].startswith('/'):
+if not config['pasty_route_prefix'].endswith('/') or not config['pasty_route_prefix'].startswith('/'):
     raise RuntimeError('pasty Route Prefix must start and end with a /')
+if config['public_url'].endswith('/'):
+    raise RuntimeError('public_url must not end with a path')
 
 
 def create_slug(length=config['slug_size']):
-    return ''.join(choices(SLUG_CHAR, k=length))
+    return ''.join(choices(config['slug_chars'], k=length))
 
 
 class LRU():
@@ -80,3 +65,14 @@ class LRU():
         self._lru[key] = value
         if len(self._lru) > self._len:
             self._lru.popitem(last=False)
+
+
+def write_paste(name, content):
+    try:
+        with open(join(config['paste_dir'], name), 'w') as file:
+            file.write(content)
+            file.close()
+            return True
+    except IOError as exception:
+        print(f'error while saving file {exception}', file=stderr)
+        return False

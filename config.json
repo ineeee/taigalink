@@ -1,0 +1,13 @@
+{
+  "slug_size": 6,
+  "slug_chars": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+  "link_storage_size": 8196,
+  "max_paste_size": 8192,
+  "max_paste_title": 200,
+  "paste_dir": "uploads/",
+  "shortie_route_prefix": "/s/",
+  "pasty_route_prefix": "/p/",
+  "public_url": "http://paste.wolowolo.com",
+  "listen_addr": "127.0.0.1",
+  "port": 8088
+}
