@@ -19,12 +19,12 @@
 # THE SOFTWARE.
 
 from bottle import Bottle, request, response, abort
-from src.sharelib import LRU, create_slug, config
+from contrib.bottle_sqlite import SQLitePlugin
+from src.sharelib import get_url, put_url, create_slug, dbfile, config
 
 
 app = Bottle()
-
-URL_CACHE = LRU()
+app.install(SQLitePlugin(dbfile=dbfile))
 
 
 def get_url_from_req():
@@ -36,7 +36,7 @@ def get_url_from_req():
 
 
 @app.post('/short')
-def shorten():
+def shorten(db):
     short_url = request.forms.get('url', '')
     if short_url == '':
         abort(400, 'url must be non zero')
@@ -47,17 +47,17 @@ def shorten():
     elif short_url[:7] != 'http://' and short_url[:8] != 'https://':
         abort(400, 'url must have a HTTP uri schema')
 
-    link_id = create_slug()
-    URL_CACHE.put(link_id, short_url)
+    link_slug = create_slug()
+    put_url(db, link_slug, short_url)
 
-    return f'{get_url_from_req()}{link_id}\n'
+    return f'{get_url_from_req()}{link_slug}\n'
 
 
 @app.get('/')
 @app.get('/<short>')
-def get_short(short=''):
+def get_short(db, short=''):
     if short != '':
-        location = URL_CACHE.get(short)
+        location = get_url(db, short)
         if not location:
             abort(404, 'No such link')
 

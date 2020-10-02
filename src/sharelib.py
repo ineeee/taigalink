@@ -4,7 +4,7 @@ from os.path import join
 from os import environ
 import json
 from sys import stderr
-from collections import OrderedDict
+import sqlite3
 
 
 SLUG_CHAR = ascii_letters + digits
@@ -17,9 +17,9 @@ CONFIG_PATHS = [join(environ.get('XDG_CONFIG_HOME',
                 './taigalink.json']
 
 DEFAULT_CONFIG = {'slug_size': 6,
-                  'link_storage_size': 8196,
                   'max_paste_size': 1024 * 8,
                   'paste_dir': 'uploads/',
+                  'db_dir': './',
                   'shortie_route_prefix': '/s/',  # must start and end with /
                   'pasty_route_prefix': '/p/',  # must start and end with /
                   'scheme': 'http',
@@ -57,26 +57,30 @@ if not config['pasty_route_prefix'].endswith('/') or \
     raise RuntimeError('pasty Route Prefix must start and end with a /')
 
 
+dbfile = join(config['db_dir'], 'shortie_links.db')
+db = sqlite3.connect(dbfile)
+with db:
+    db.execute('''
+CREATE TABLE IF NOT EXISTS shortie (
+  slug TEXT PRIMARY KEY,
+  url TEXT
+)''')
+
+
+def get_url(db, slug):
+    row = db.execute('SELECT url FROM shortie WHERE slug = ?',
+                     (slug,)).fetchone()
+    if row:
+        return row[0]
+    return None
+
+
+def put_url(db, slug, url):
+    return db.execute('''
+INSERT OR REPLACE INTO shortie( slug, url )
+                        VALUES( ?,    ? )
+''', (slug, url))
+
+
 def create_slug(length=config['slug_size']):
     return ''.join(choices(SLUG_CHAR, k=length))
-
-
-class LRU():
-    def __init__(self, size=config['link_storage_size']):
-        self._lru = OrderedDict()
-        self._len = size
-
-    def __len__(self):
-        return len(self._lru)
-
-    def get(self, key, default=None):
-        try:
-            self._lru.move_to_end(key)
-            return self._lru[key]
-        except KeyError:
-            return default
-
-    def put(self, key, value):
-        self._lru[key] = value
-        if len(self._lru) > self._len:
-            self._lru.popitem(last=False)
