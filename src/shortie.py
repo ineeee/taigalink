@@ -69,11 +69,11 @@ def get_short(short=''):
     if short == '':
         return f'''curl '{PUBLIC_URL}short' -d "url=$url"\n'''
 
-    location = URL_CACHE.get(short)
-    if not location:
+    data = URL_CACHE.get(short)
+    if not data:
         abort(404, 'No such link')
 
     response.status = 301
     response.content_type = 'text/plain'
-    response.add_header('Location', location)
+    response.add_header('Location', data[1])
     return 'Redirecting...'
