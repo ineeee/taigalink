@@ -1,7 +1,6 @@
 from string import ascii_letters, digits
 from random import choices
 import json
-from sys import stderr
 from os.path import join
 from collections import OrderedDict
 
@@ -12,7 +11,7 @@ DEFAULT_CONFIG = {'slug_size': 6,
                   'max_paste_size': 1024 * 8,
                   'max_paste_title': 200,
                   'paste_dir': 'uploads/',
-                  'shortie_dir': 'uploads/',
+                  'shortie_database': 'urls.json',
                   'shortie_route_prefix': '/s/',  # must start and end with /
                   'pasty_route_prefix': '/p/',  # must start and end with /
                   'public_url': 'http://paste.wolowolo.com',  # no / at the end!
@@ -25,11 +24,11 @@ try:
     with open('./config.json', 'r') as c:
         config = {**DEFAULT_CONFIG, **json.load(c)}
 except FileNotFoundError:
-    print('WARNING: no config.json exists, using defaults', file=stderr)
+    print('WARNING: no config.json exists, using defaults')
     try:
         with open('./config.json', 'w') as f:
             json.dump(DEFAULT_CONFIG, f, indent=2)
-            print('WARNING: wrote defaults to config.json', file=stderr)
+            print('WARNING: wrote defaults to config.json')
     except Exception:
         pass
     pass
@@ -46,27 +45,6 @@ def create_slug(length=config['slug_size']):
     return ''.join(choices(config['slug_chars'], k=length))
 
 
-class LRU():
-    def __init__(self, size=config['link_storage_size']):
-        self._lru = OrderedDict()
-        self._len = size
-
-    def __len__(self):
-        return len(self._lru)
-
-    def get(self, key, default=None):
-        try:
-            self._lru.move_to_end(key)
-            return self._lru[key]
-        except KeyError:
-            return default
-
-    def put(self, key, value):
-        self._lru[key] = value
-        if len(self._lru) > self._len:
-            self._lru.popitem(last=False)
-
-
 def write_paste(name, content):
     try:
         with open(join(config['paste_dir'], name), 'w') as file:
@@ -74,5 +52,26 @@ def write_paste(name, content):
             file.close()
             return True
     except IOError as exception:
-        print(f'error while saving file {exception}', file=stderr)
+        print(f'error while saving file {exception}')
         return False
+
+
+def write_urls(data):
+    try:
+        with open(config['shortie_database'], 'w') as f:
+            json.dump(data, f)
+    except IOError as exception:
+        print('ERROR: cant write shortie db')
+        print(exception)
+        return False
+
+    return True
+
+
+def load_urls():
+    try:
+        with open(config['shortie_database'], 'r') as c:
+            return json.load(c)
+    except FileNotFoundError:
+        print('WARNING: shortie db is empty (ignore if first boot)')
+        return {}

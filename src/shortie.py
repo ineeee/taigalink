@@ -18,32 +18,49 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from time import time
 from bottle import Bottle, request, response, abort
-from src.sharelib import LRU, create_slug, config
+from src.sharelib import create_slug, config, write_urls, load_urls
 
 
 app = Bottle()
-
-URL_CACHE = LRU()
 PUBLIC_URL = config['public_url'] + config['shortie_route_prefix']
+
+URL_CACHE = load_urls()
+
+
+def store_short(url, id=create_slug()):
+    # if collision, try again with longer slug
+    if id in URL_CACHE:
+        return store_short(url, create_slug(config['slug_size'] + 2))
+
+    timestamp = int(time())
+    URL_CACHE[id] = [timestamp, url]
+
+    if write_urls(URL_CACHE):
+        return id
+    else:
+        return False
 
 
 @app.post('/short')
 def shorten():
-    short_url = request.forms.get('url', '')
-    if short_url == '':
+    long_url = request.forms.get('url', '')
+    if long_url == '':
         abort(400, 'url must be non zero')
-    elif len(short_url) > 4096:
+    elif len(long_url) > 4096:
         abort(400, 'url too long')
-    elif '\n' in short_url or '\r' in short_url or ' ' in short_url:
+    elif '\n' in long_url or '\r' in long_url or ' ' in long_url:
         abort(400, 'url not valid: it has whitespace')
-    elif short_url[:7] != 'http://' and short_url[:8] != 'https://':
-        abort(400, 'url must have a HTTP uri schema')
+    elif long_url[:7] != 'http://' and long_url[:8] != 'https://':
+        abort(400, 'url must have a HTTP uri schema')  # why?
 
-    link_id = create_slug()
-    URL_CACHE.put(link_id, short_url)
+    id = store_short(long_url)
 
-    return PUBLIC_URL + link_id
+    if id is False:
+        abort(500, 'cant shorten the url')
+
+    return PUBLIC_URL + id
 
 
 @app.get('/')
