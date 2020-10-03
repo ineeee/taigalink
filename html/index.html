@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>paste.wolowolo.com</title>
+	<style>
+		body { max-width: 600px; margin: 1em auto; }
+		input, textarea { width: 100% }
+		div { margin: 1em 0 }
+		section { margin: 2em 0; }
+	</style>
+</head>
+<body>
+	<main>
+		<h1>paste.wolowolo.com</h1>
+		<p>its supposed to be an api, not a friendly user thing</p>
+
+		<section>
+			<h2>url shortener</h2>
+			<form action="/s/short" method="post">
+				<label>URL: <input name="url" type="text" /></label>
+				<button>shorten</button>
+			</form>
+		</section>
+
+		<section>
+			<h2>pastebin</h2>
+			<form action="/p/upload" method="post">
+				<div>Uploader: <input name="uploader" type="text" /></div>
+				<div>Title: <input name="title" type="text" /></div>
+				<div>Text: <textarea required name="text"></textarea></div>
+				<div><input value="Upload" type="submit" /></div>
+			</form>
+		</section>
+	</main>
+</body>
+</html>
