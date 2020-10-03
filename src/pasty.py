@@ -12,6 +12,14 @@ app = Bottle()
 MAX_TITLE_SIZE = 200
 
 
+def get_url_from_req():
+    host = request.get_header('host',
+                              f'{config["listen_addr"]}:{config["port"]}')
+    scheme = request.get_header('X-Forwarded-Proto',
+                                config['scheme'])
+    return f'''{scheme}://{host}{config['pasty_route_prefix']}'''
+
+
 def write_file(name, content):
     try:
         with open(join(config['paste_dir'], name), 'w') as file:
@@ -31,9 +39,8 @@ def clean(text):
 @app.get('/')
 @app.get('/upload')
 def upload_page():
-    # some dumb form
     response.content_type = 'text/plain; charset=utf-8'
-    return 'curl "http://paste.wolowolo.com/p/upload" -d "uploader=nerd" -d "title=something" -d "text=some text to paste here"'
+    return f'''curl '{get_url_from_req()}upload' -d "uploader=nerd" -d "title=something" -d "text=some text to paste here"'''
 
 
 @app.post('/upload', method='POST')
@@ -87,4 +94,4 @@ def upload_handler():
         abort(500, 'cant save the html file')
         return
 
-    return name
+    return get_url_from_req() + name
