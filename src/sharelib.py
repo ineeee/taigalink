@@ -2,12 +2,10 @@ from string import ascii_letters, digits
 from random import choices
 import json
 from os.path import join
-from collections import OrderedDict
 
 
 DEFAULT_CONFIG = {'slug_size': 6,
                   'slug_chars': ascii_letters + digits,
-                  'link_storage_size': 8196,
                   'max_paste_size': 1024 * 8,
                   'max_paste_title': 200,
                   'paste_dir': 'uploads/',
