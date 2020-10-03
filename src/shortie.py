@@ -29,7 +29,10 @@ PUBLIC_URL = config['public_url'] + config['shortie_route_prefix']
 URL_CACHE = load_urls()
 
 
-def store_short(url, id=create_slug()):
+def store_short(url, id=False):
+    if not id:
+        id = create_slug()
+
     # if collision, try again with longer slug
     if id in URL_CACHE:
         return store_short(url, create_slug(config['slug_size'] + 2))
