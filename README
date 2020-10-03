@@ -1,0 +1,38 @@
+taiga.link
+==========
+this branch is a fork (kinda) of taiga.link, powers the pastebin at wolowolo.com
+
+
+pastes
+------
+how to:
+
+    curl http://paste.wolowolo.com/p/upload -d "text=some text to paste here"
+
+it'll return the full url to the paste. the python script just writes it to a
+text file and its served by nginx.
+
+
+url shortener
+-------------
+how to:
+
+    curl http://paste.wolowolo.com/s/short -d "url=https://example.org/"
+
+returns the url to the shortened link. this fork focuses on SIMPLICITY and LOW
+TRAFFIC. all links are thrown into a .json file
+
+
+how to run
+----------
+add the nginx config to your nginx server. then run this script:
+
+    git clone https://github.com/inexist3nce/taigalink.git
+    cd taigalink
+    python3 server.py
+
+
+TODO
+----
+- document how the whole "server side includes" thing works
+- make things expire after a few days. that's why it stores timestamps after all
