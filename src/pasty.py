@@ -1,4 +1,4 @@
-from bottle import Bottle, request, response, abort
+from bottle import Bottle, request, response, abort, static_file
 from html import escape
 from time import time
 from src.sharelib import create_slug, config
@@ -41,6 +41,12 @@ def clean(text):
 def upload_page():
     response.content_type = 'text/plain; charset=utf-8'
     return f'''curl '{get_url_from_req()}upload' -d "uploader=nerd" -d "title=something" -d "text=some text to paste here"'''
+
+
+@app.get('/<paste>')
+def get_paste(paste):
+    response.content_type = 'text/plain; charset=utf-8'
+    return static_file(f'{paste}.txt', root=config['paste_dir'])
 
 
 @app.post('/upload', method='POST')
