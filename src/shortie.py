@@ -19,12 +19,11 @@
 # THE SOFTWARE.
 
 from bottle import Bottle, request, response, abort
-from contrib.bottle_sqlite import SQLitePlugin
-from src.sharelib import get_url, put_url, create_slug, dbfile, config
+from os.path import join
+from src.sharelib import create_slug, config
 
 
 app = Bottle()
-app.install(SQLitePlugin(dbfile=dbfile))
 
 
 def get_url_from_req():
@@ -35,8 +34,25 @@ def get_url_from_req():
     return f'''{scheme}://{host}{config['shortie_route_prefix']}'''
 
 
+def get_url(slug):
+    '''Return the link stored in a file'''
+    try:
+        with open(join(config['short_dir'], slug), 'r') as link_file:
+            return link_file.read()
+    # 404
+    except FileNotFoundError:
+        return ''
+    # bubble up all other exceptions
+
+
+def put_url(slug, url):
+    # if the file exists, weirdly unlucky (thus 'w' and not 'x')
+    with open(join(config['short_dir'], slug), 'w') as link_file:
+        link_file.write(url)
+
+
 @app.post('/short')
-def shorten(db):
+def shorten():
     short_url = request.forms.get('url', '')
     if short_url == '':
         abort(400, 'url must be non zero')
@@ -48,16 +64,16 @@ def shorten(db):
         abort(400, 'url must have a HTTP uri schema')
 
     link_slug = create_slug()
-    put_url(db, link_slug, short_url)
+    put_url(link_slug, short_url)
 
     return f'{get_url_from_req()}{link_slug}\n'
 
 
 @app.get('/')
 @app.get('/<short>')
-def get_short(db, short=''):
+def get_short(short=''):
     if short != '':
-        location = get_url(db, short)
+        location = get_url(short)
         if not location:
             abort(404, 'No such link')
 
