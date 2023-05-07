@@ -54,6 +54,8 @@ def upload_handler():
     uploader = request.forms.uploader or 'anonymous'
     title = request.forms.title or 'untitled'
     text = request.forms.text
+    format = request.forms.format or 'text'
+
     timestamp = int(time())
 
     response.content_type = 'text/plain; charset=utf8'
@@ -93,7 +95,10 @@ def upload_handler():
     page = page + '<!--#set var="paste_title" value="{}" -->\n'.format(clean(title))
     page = page + '<!--#set var="paste_timestamp" value="{}" -->\n'.format(timestamp)
     page = page + '<!--#include file="paste_header.html" -->\n'
-    page = page + '<div id="paste">{}</div>\n'.format(escape(text))
+    if format == 'html':
+        page = page + '<div id="paste">{}</div>\n'.format(text)
+    else:
+        page = page + '<div id="paste">{}</div>\n'.format(escape(text))
     page = page + '<!--#include file="paste_footer.html" -->\n'
 
     if write_file(name + '.html', page) is False:
