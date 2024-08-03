@@ -27,11 +27,7 @@ app = Bottle()
 
 
 def get_url_from_req():
-    host = request.get_header('host',
-                              f'{config["listen_addr"]}:{config["port"]}')
-    scheme = request.get_header('X-Forwarded-Proto',
-                                config['scheme'])
-    return f'''{scheme}://{host}{config['shortie_route_prefix']}'''
+    return config['public_url'] + config['shortie_route_prefix']
 
 
 def get_url(slug):

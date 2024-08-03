@@ -7,5 +7,7 @@
   "pasty_route_prefix": "/p/",
   "scheme": "http",
   "listen_addr": "127.0.0.1",
-  "port": 1997
+  "port": 1997,
+
+  "public_url": "https://taiga.link"
 }

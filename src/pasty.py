@@ -13,11 +13,7 @@ MAX_TITLE_SIZE = 200
 
 
 def get_url_from_req():
-    host = request.get_header('host',
-                              f'{config["listen_addr"]}:{config["port"]}')
-    scheme = request.get_header('X-Forwarded-Proto',
-                                config['scheme'])
-    return f'''{scheme}://{host}{config['pasty_route_prefix']}'''
+    return config['public_url'] + config['pasty_route_prefix']
 
 
 def write_file(name, content):
