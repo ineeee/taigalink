@@ -108,7 +108,8 @@ def upload_handler():
     if format == 'html':
         page = transform_template(title, uploader, timestamp, text)
     else:
-        page = transform_template(title, uploader, timestamp, escape(text))
+        text = f'<pre>{escape(text)}</pre>'
+        page = transform_template(title, uploader, timestamp, text)
 
     if write_file(name + '.html', page) is False:
         abort(500, 'cant save the html file')

@@ -6,21 +6,24 @@
 	<title>Paste</title>
 	<style>
 		body {
-			font-size: 1.1em;
+			font-size: 1.125em;
+			line-height: 1.2;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+			padding: 1em 0.2em;
+			background: #f8fbfb;
 		}
+
 		main {
-			max-width: 700px;
+			padding: 1em;
+			background: #fff;
+			max-width: 800px;
 			margin: 0 auto;
 		}
 
 		/* always break user input, avoids breaking the page layout */
-		#paste, #paste pre, h2, h5 {
+		#paste, #paste * {
 			white-space: pre-wrap;
 			word-wrap: break-word;
-		}
-
-		#paste {
-			font-family: monospace;
 		}
 	</style>
 </head>
@@ -28,7 +31,7 @@
 	<main>
 		<h2><!-- TITLE --></h2>
 		<p>uploaded by <!-- UPLOADER --> at <!-- TIMESTAMP --></p>
-		<pre><!-- CONTENT --></pre>
+		<div id="paste"><!-- CONTENT --></div>
 	</main>
 </body>
 </html>
