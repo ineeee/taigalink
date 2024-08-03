@@ -5,7 +5,13 @@ from src.sharelib import create_slug, config
 from sys import stderr
 from os.path import join
 import re
+import os
+import sys
 
+if not os.path.isdir(config['paste_dir']):
+    print('error: the pastebin upload directory does not exist')
+    print('try running mkdir -p ' + config['paste_dir'])
+    sys.exit(1)
 
 app = Bottle()
 

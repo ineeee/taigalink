@@ -20,10 +20,17 @@
 
 from bottle import Bottle, request, response, abort
 from os.path import join
+import os
+import sys
 from src.sharelib import create_slug, config
 
 
 app = Bottle()
+
+if not os.path.isdir(config['short_dir']):
+    print('error: the shortener directory does not exist')
+    print('try running mkdir -p ' + config['short_dir'])
+    sys.exit(1)
 
 
 def get_url_from_req():
