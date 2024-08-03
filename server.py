@@ -8,9 +8,9 @@ main.mount(config['pasty_route_prefix'], pasty.app)
 
 @main.get('/')
 def index():
-    return 'taiga.link is running!'
+    return 'taiga.link is running at ' + config['public_url']
 
 if __name__ == '__main__':
-    main.run(host=config['listen_addr'],
+    main.run(host=config['host'],
              port=config['port'],
              quiet=True)

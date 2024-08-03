@@ -1,13 +1,12 @@
 {
+  "host": "127.0.0.1",
+  "port": 1997,
+  "public_url": "https://taiga.link",
+
   "slug_size": 6,
   "max_paste_size": 8192,
-  "short_dir": "/var/www/taigalink/s/",
-  "paste_dir": "/var/www/taigalink/p/",
+  "short_dir": "./uploads/short/",
+  "paste_dir": "./uploads/paste/",
   "shortie_route_prefix": "/s/",
-  "pasty_route_prefix": "/p/",
-  "scheme": "http",
-  "listen_addr": "127.0.0.1",
-  "port": 1997,
-
-  "public_url": "https://taiga.link"
+  "pasty_route_prefix": "/p/"
 }
