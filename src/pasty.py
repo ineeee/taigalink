@@ -7,6 +7,8 @@ from os.path import join
 import re
 import os
 import sys
+from datetime import datetime
+
 
 if not os.path.isdir(config['paste_dir']):
     print('error: the pastebin upload directory does not exist')
@@ -38,6 +40,18 @@ def clean(text):
     return escape(re.sub('[^0-9a-zA-Z ]+', '*', text))
 
 
+def transform_template(title: str, uploader: str, timestamp: str, content: str) -> str:
+    with open('./uploads/paste_template.html') as file:
+        html = file.read()
+
+    html = html.replace('<!-- TITLE -->', clean(title))
+    html = html.replace('<!-- UPLOADER -->', clean(uploader))
+    html = html.replace('<!-- TIMESTAMP -->', timestamp)
+    html = html.replace('<!-- CONTENT -->', content)
+
+    return html
+
+
 @app.get('/')
 @app.get('/upload')
 def upload_page():
@@ -57,8 +71,6 @@ def upload_handler():
     title = request.forms.title or 'untitled'
     text = request.forms.text
     format = request.forms.format or 'text'
-
-    timestamp = int(time())
 
     response.content_type = 'text/plain; charset=utf8'
 
@@ -91,17 +103,12 @@ def upload_handler():
         return
 
     # write html page with some information
-    # they're supposed to be processed by nginx or apache
-    page = '<!-- server side includes -->\n'
-    page = page + '<!--#set var="paste_uploader" value="{}" -->\n'.format(clean(uploader))
-    page = page + '<!--#set var="paste_title" value="{}" -->\n'.format(clean(title))
-    page = page + '<!--#set var="paste_timestamp" value="{}" -->\n'.format(timestamp)
-    page = page + '<!--#include file="paste_header.html" -->\n'
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
     if format == 'html':
-        page = page + '<div id="paste">{}</div>\n'.format(text)
+        page = transform_template(title, uploader, timestamp, text)
     else:
-        page = page + '<div id="paste">{}</div>\n'.format(escape(text))
-    page = page + '<!--#include file="paste_footer.html" -->\n'
+        page = transform_template(title, uploader, timestamp, escape(text))
 
     if write_file(name + '.html', page) is False:
         abort(500, 'cant save the html file')
